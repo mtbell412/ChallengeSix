@@ -5,11 +5,11 @@ var temp = document.getElementById('temp');
 var wind = document.getElementById('wind');
 var humidity = document.getElementById('humidity');
 var fiveDay = document.getElementById('fiveday');
-
+var buttons = document.getElementById('extra-buttons');
 
 var arr = [];
 
-
+//event listener for city button
 form.addEventListener("submit", function (event) {
     event.preventDefault(event);
     document.getElementById('1').innerHTML = '';
@@ -19,9 +19,13 @@ form.addEventListener("submit", function (event) {
     document.getElementById('5').innerHTML = '';
     var inputCity = input.value;
     getLatLong(inputCity);
+    //
+    createButton(inputCity,false);
 
 
 });
+
+
 
 function getLatLong(city) {
     fetch(`http://api.openweathermap.org/geo/1.0/direct?q=${city}&appid=bd39c49ed84945757ccf3678c820d194`, {
@@ -137,3 +141,61 @@ function renderForcast(data) {
     console.log(arr);
 }
 
+
+function saveLocation(cityName) {
+    //initialize or pull json object in local storage
+    var savedCities = JSON.parse(localStorage.getItem("City")) || [];
+    //boolean value to see if something is present
+    var alreadyExists = false;
+    for (var i = 0; i < savedCities.length; i++) {
+        //searches the array for all values of name
+        if (savedCities[i] == cityName) {
+            //if it exists we change the value to true
+            alreadyExists = true;
+        }
+    }
+    if (alreadyExists) {
+        console.log('exists');
+    } else {
+        //adding to existing object the location and name
+        
+        savedCities.push(cityName.toLowerCase());
+        //saves it to storage and converts back to a string for JSON 
+        localStorage.setItem("City", JSON.stringify(savedCities));
+    }
+
+
+}
+
+//creates a new button for everything clicked on
+function createButton(inputCity, init) {
+    var arrCity = JSON.parse(localStorage.getItem("City")) || [];
+    if(init){
+        arrCity = [];
+    }
+    if(arrCity.includes(inputCity.toLowerCase())){
+        console.log("city already exists");
+    }else{
+        var newButton = document.createElement('button');
+        newButton.innerHTML = inputCity;
+        newButton.style.textTransform = 'capitalize';
+        buttons.appendChild(newButton);
+        newButton.addEventListener('click', function (event) {
+            event.preventDefault(event);
+            document.getElementById('1').innerHTML = '';
+            document.getElementById('2').innerHTML = '';
+            document.getElementById('3').innerHTML = '';
+            document.getElementById('4').innerHTML = '';
+            document.getElementById('5').innerHTML = '';
+            getLatLong(inputCity);
+        });
+    }
+    saveLocation(inputCity);
+}
+
+//on page loadup check the data in local storage and create a new button
+var arrCity = JSON.parse(localStorage.getItem("City")) || [];
+
+for(var i = 0; i< arrCity.length;i++){
+    createButton(arrCity[i],true);
+}
